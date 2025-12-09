@@ -1,0 +1,60 @@
+Medición de constante elástica de cubos de prueba de impresión de rollo azul Lunes 22 septiembre
+
+---------------------------Fórmulas---------------------------
+C = sqrt(E/po)
+po: densidad
+E: cte elastica
+C: velocidad del sonido
+
+V = distancia/tiempo
+V: velocidad del sonido
+
+
+
+
+---------------------------PROCEDIMIENTO---------------------------
+Medición automatizada con el programa de matlab "CONTROL2CANALES_220905" siguiendo el proceso de conectado de instrumentos (...detallar).
+Utilizando prensa mecánica de color verde, en primera instancia con el transductor emisor (terminante en 25) en la zona inferior
+y el transductor receptor en la zona superior. La prensa está ajustada de manera que no se mueva el cubo en su interior.
+
+No se utilizó gel acoplante en la medición
+
+Carpeta de Franco en DATA(E:) fue comprimido
+
+Antes de iniciar el codigo de Matlab, se debe setear manualmente el osciloscopio
+	-Auto
+	-Menú: Acquire -> Acquisition -> Average (promedio)
+
+Se midió longitudinal y radial.
+
+
+
+
+---------------------------DATOS---------------------------
+Ancho del cubo = 3cm = 3e-2(m)
+
+
+
+
+
+
+---------------------------Apuntes---------------------------
+Las mediciones de los materiales se puede hacer por torción o flexión de los materiales.
+
+Las constantes elásticas de un material debería cambiar para generación de materiales 3D longitudinales o transversales, por lo que
+se medirán las constantes elásticas longitudinales y radiales (EL, Er)
+
+
+---------------------------Conexion entre Matlab y generador de señal Agilent33220A ---------------------------
+Cambiamos la forma de onda del Arb 
+
+
+1Khz entre pulsos = 277Khz de frec de onda
+X = 500Khz de frec de onda
+
+X = 500k *  / 277
+X = 1805
+
+La frecuencia entre pulsos del generador de funciones debe ser de 1805 Hz para tener una frecuencia de onda de 500Khz
+
+Con f = 1000Hz, se aprecian rebotes
