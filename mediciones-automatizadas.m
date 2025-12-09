@@ -1,4 +1,4 @@
-%%%%%% MEDICION DE CONSTANTE ELASTICA MEDIANTE TECNICA DE VUELO %%%%%%
+%% MEDICION DE CONSTANTE ELASTICA MEDIANTE TECNICA DE VUELO%%%%%%
 % 
 %
 %
@@ -34,12 +34,11 @@ material = opcion;
 %%-------------------------------------- EXCEL ------------------------------------------%%
 filename = ['registro_' material '_' tipoMedicion '_' char(fechaHora) '.xlsx']; % Generar nombre de archivo
 directorioActual = pwd;                              %Carpeta para guardar archivos Excel  Directorio del script
-carpetaExcel = fullfile(directorioActual, 'archivos-excel');
+carpetaExcel = fullfile(directorioActual, 'ARCHIVOS EXCEL');
 if ~exist(carpetaExcel, 'dir') % Crear carpeta si no existe
     mkdir(carpetaExcel);
 end
 rutaCompleta = fullfile(carpetaExcel, filename);    % Ruta completa del archivo
-
 %%-------------------------------------- RESUMEN ------------------------------------------%%
 disp(' '); disp('=== Resumen de datos ingresados ===');
 fprintf('Valor de d: %.4f m\n', d);
@@ -141,7 +140,9 @@ legend({'Canal 1','Envolvente C1',...
 
 %% CALCULOS DE VELOCIDADES %%
 d = input('Ingrese el valor del ancho del material (en metros): ');
+
 delta_t  = t_max2 - t_max1;
+
 V        = d / delta_t;
 
 % Segundo rebote
@@ -150,11 +151,21 @@ delta_t3 = delta_t1/4;
 
 % Calculo de Velocidad V = Δx/Δt
 V3       = d / (delta_t3);
-fprintf('Δt  (C2 - C1) = %.6e s\n', delta_t);fprintf(' Velocidad C1→C2 = %.6f m/s\n', V);fprintf('Δt  rebote (C4 - C3) = %.6e s\n', delta_t3);fprintf('  → Velocidad rebote = %.6f m/s\n', V3);
+
+fprintf('Δt  (C2 - C1)               = %.6e s\n', delta_t);
+fprintf('  → Velocidad C1→C2         = %.6f m/s\n', V);
+fprintf('Δt  rebote (C4 - C3)        = %.6e s\n', delta_t3);
+fprintf('  → Velocidad rebote        = %.6f m/s\n', V3);
 
 %% GUARDADO DE DATOS %%
 fechaHora = datetime('now', 'Format', 'yyyyMMdd_HHmmss');
+
+material = input('Ingrese el tipo de material: ', 's');
+
 filename = input('Ingrese el nombre del archivo excel de registro de medicion: ', 's');
+
+%% DEFINIR sheetName ANTES DE USARLO %%
+sheetName = material;
 
 %% CALCULAR ITERACION CORRECTAMENTE %%
 if isfile(filename)
@@ -164,15 +175,20 @@ if isfile(filename)
     catch
         iteracion = 1;
     end
-    else
-    iteracion = 1; end
+else
+    iteracion = 1;
+end
 
 %% PREPARAR DATOS %%
 datos = {d; delta_t; V; delta_t3; V3};
-etiquetas = {'Distancia(m)';'Tiempo1(s)';'Velocidad1(m/s)';'TiempoRebote/4(s)';'Velocidad3 (Rebote)(m/s)'};
-T = table(iteracion, d, delta_t, V, delta_t3, V3, 'VariableNames', {'Iteracion', 'Distancia', 'Tiempo1', 'Velocidad1', 'TiempoRebote_4', 'Velocidad3'});
+etiquetas = {'Distancia(m)';'Tiempo1(s)';'Velocidad1(m/s)';...
+    'TiempoRebote/4(s)';'Velocidad3 (Rebote)(m/s)'};
 
-%% GUARDAR O ACTUALIZAR HOJA DE EXCEL %%
+T = table(iteracion, d, delta_t, V, delta_t3, V3, ...
+    'VariableNames', {'Iteracion', 'Distancia', 'Tiempo1', 'Velocidad1', ...
+                      'TiempoRebote_4', 'Velocidad3'});
+
+%% GUARDAR O ACTUALIZAR HOJA %%
 if isfile(filename)
     try
         T_existente = readtable(filename, 'Sheet', sheetName);
@@ -206,3 +222,33 @@ end
 nombreMaterial = regexprep(material,'\s+','_');
 nombreArchivo = sprintf('Grafica_%s_TR_Iteracion_%d.jpg', nombreMaterial, iteracion);
 saveas(gcf, fullfile(carpeta, nombreArchivo));
+
+%% ACTIVIDADES
+%Actividades lunes 08 sept
+%1. Generar tablas en el guardado de datos de excel -- Por completar
+%2. Guardado de tablas en cada hoja de excel para cada tipo de material de
+%probeta -- COMPLETADO
+%3. Comprender y comentar las funciones del codigo -- FALTA
+%4. Calculo de promedio y desviacion estandar para cada iteracion: 
+% - distancia (ancho de probeta)
+% - velocidad
+
+%Actividades por hacer
+%%Hay un error en el nombre de la iteracion entre excel y el nombre de la foto 
+%3. Comprender y comentar las funciones del codigo -- FALTA
+%4. Calculo de promedio y desviacion estandar para cada iteracion: 
+% - distancia (ancho de probeta)
+% - velocidad
+
+%Actividades lunes 22 sept
+%1. Medición de constante elástica longitudinal y radial para cubo de
+%prueba de material de impresión 3D azul
+
+%Actividades por hacer
+%%Hay un error en el nombre de la iteracion entre excel y el nombre de la foto 
+%3. Comprender y comentar las funciones del codigo -- FALTA
+%4. Calculo de promedio y desviacion estandar para cada iteracion: 
+% - distancia (ancho de probeta)
+% - velocidad
+
+% Una foto con nombre de iteracion para cada iteracion
