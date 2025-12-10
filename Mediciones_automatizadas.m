@@ -1,12 +1,13 @@
-%%%%%% MEDICION DE CONSTANTE ELASTICA MEDIANTE TECNICA DE VUELO %%%%%%
+%% ===================================================================== %%
+%          MEDICION DE CONSTANTE ELASTICA MEDIANTE TECNICA DE VUELO
+%          Laboratorio de Acústica musical Lutheria Postdigital LAÚD
+%% ===================================================================== %%
+%
+%
 % 
-%
-%
-%
 % https://github.com/renatohernandezvenegas-alt/LAUD-mediciones-TOF/tree/main
 
-%% INICIALIZACION DE VARIABLES Y PRESENTACION DE PROGRAMA %%
-clc; clear; close all;
+%% INICIALIZACION DE VARIABLES Y PRESENTACION DE PROGRAMA %%clc; clear; close all;
 fechaHora = datetime('now', 'Format', 'yyyyMMdd_HHmmss'); % Obtener fecha y hora actuales
 disp('======    Medicion de velocidad de propagacion en distintos materiales utilizando "TOF"   ======');
 disp('======    Velocidad de propagacion de ondas longitudinales, transversales o radiales      ======');
@@ -14,7 +15,24 @@ disp('');
 
 %%------------------------------------DISTANCIA ------------------------------------------%%
 d = input('\n Ingrese el ancho del material a medir [ej. 3(cm) = 0.03(m)]: '); %Ancho de la probeta 
-%%-------------------------------- TIPO DE MEDICION ------------------------------------------%%
+
+%%------------------------------------ MATERIALIDAD ------------------------------------------%%
+fprintf('\n Materiales recurrentes: \n ACERO\n LATON\n COBRE\n ALUMINIO\n LAUREL\n CIRUELILLO \n EBANO\n NOGAL\n'); 
+opcion = input('Ingrese la naturaleza del material a medir: ', 's');  % 's' hace que sea texto
+material = opcion;
+masa = input('Ingrese la masa del material a medir en (Kg): ');
+dimension_x = input('Ingrese el largo del material a medir en (m): ');
+dimension_y = input('Ingrese el ancho del material a medir en (m): ');
+dimension_z = input('Ingrese el alto (espesor) del material a medir en (m): ');
+
+
+
+
+
+                                %% VARIABLES GENERALES DE MEDICION 
+% Si se desea saltar la inicializacion de los pasos anteriores, apretar Run to End desde esta seccion
+
+%%-------------------------------- TIPO DE MEDICION --------------------------------------%%
 opcionMedicion = 0;            
 while ~ismember(opcionMedicion, [1 2 3])
     disp('Seleccione el tipo de medición:');
@@ -27,18 +45,6 @@ if opcionMedicion == 1
     tipoMedicion = 'Longitudinal'; elseif opcionMedicion == 2
     tipoMedicion = 'Transversal'; else
     tipoMedicion = 'Radial'; end
-%%------------------------------------ MATERIALIDAD ------------------------------------------%%
-fprintf('\n Materiales recurrentes: \n ACERO\n LATON\n COBRE\n ALUMINIO\n LAUREL\n CIRUELILLO \n EBANO\n NOGAL\n'); 
-opcion = input('Ingrese la naturaleza del material a medir: ', 's');  % 's' hace que sea texto
-material = opcion;
-%%-------------------------------------- EXCEL ------------------------------------------%%
-filename = ['registro_' material '_' tipoMedicion '_' char(fechaHora) '.xlsx']; % Generar nombre de archivo
-directorioActual = pwd;                              %Carpeta para guardar archivos Excel  Directorio del script
-carpetaExcel = fullfile(directorioActual, 'archivos-excel');
-if ~exist(carpetaExcel, 'dir') % Crear carpeta si no existe
-    mkdir(carpetaExcel);
-end
-rutaCompleta = fullfile(carpetaExcel, filename);    % Ruta completa del archivo
 
 %%-------------------------------------- RESUMEN ------------------------------------------%%
 disp(' '); disp('=== Resumen de datos ingresados ===');
@@ -140,7 +146,7 @@ legend({'Canal 1','Envolvente C1',...
         'Max C1','Máx C2 (receptor)','Máx C2 (rebote)', 'Max C3 (segundo rebote)'});
 
 %% CALCULOS DE VELOCIDADES %%
-d = input('Ingrese el valor del ancho del material (en metros): ');
+d = dimension_z;
 delta_t  = t_max2 - t_max1;
 V        = d / delta_t;
 
@@ -152,11 +158,28 @@ delta_t3 = delta_t1/4;
 V3       = d / (delta_t3);
 fprintf('Δt  (C2 - C1) = %.6e s\n', delta_t);fprintf(' Velocidad C1→C2 = %.6f m/s\n', V);fprintf('Δt  rebote (C4 - C3) = %.6e s\n', delta_t3);fprintf('  → Velocidad rebote = %.6f m/s\n', V3);
 
-%% GUARDADO DE DATOS %%
-fechaHora = datetime('now', 'Format', 'yyyyMMdd_HHmmss');
-filename = input('Ingrese el nombre del archivo excel de registro de medicion: ', 's');
+%% CALCULO DE CONSTANTE ELASTICA
+volumen_fisico = dimension_x * dimension_y * dimension_z;
+densidad = masa / volumen_fisico; %(kg/m^3)
+
+switch opcionMedicion
+    case 1  % Longitudinal
+        constante_elastica = densidad * V^2;
+        nombreConstante = "EL (Longitudinal)";
+    case 2  % Transversal
+        constante_elastica = densidad * V^2;
+        nombreConstante = "Et (Transversal)";
+    case 3  % Radial
+        constante_elastica = densidad * V^2;
+        nombreConstante = "Er (Radial)";
+end
+
+fprintf('\n=== Constante Elástica ===\n');
+fprintf('\nConstante elástica (%s): %.3e Pa\n', nombreConstante, constante_elastica);
+
 
 %% CALCULAR ITERACION CORRECTAMENTE %%
+sheetName = 'Registro';
 if isfile(filename)
     try
         T_existente = readtable(filename, 'Sheet', sheetName);
@@ -167,12 +190,37 @@ if isfile(filename)
     else
     iteracion = 1; end
 
-%% PREPARAR DATOS %%
+%% ======================= GUARDADO DE DATOS EN EXCEL ======================= %%
+
+%%DATOS
 datos = {d; delta_t; V; delta_t3; V3};
 etiquetas = {'Distancia(m)';'Tiempo1(s)';'Velocidad1(m/s)';'TiempoRebote/4(s)';'Velocidad3 (Rebote)(m/s)'};
-T = table(iteracion, d, delta_t, V, delta_t3, V3, 'VariableNames', {'Iteracion', 'Distancia', 'Tiempo1', 'Velocidad1', 'TiempoRebote_4', 'Velocidad3'});
+T = table(iteracion, d, delta_t, V, delta_t3, V3, densidad, constante_elastica, ...
+    'VariableNames', {'Iteracion','Distancia','Tiempo1','Velocidad1','TiempoRebote_4','Velocidad3','Densidad','ConstanteElastica'});
 
-%% GUARDAR O ACTUALIZAR HOJA DE EXCEL %%
+if exist('T_existente','var')
+    T_final = [T_existente; T];
+else
+    T_final = T;
+end
+
+%%GUARDAR EXCEL
+
+filename = ['registro_' material '_' tipoMedicion '_' char(fechaHora) '.xlsx']; % Generar nombre de archivo
+directorioActual = pwd;                              %Carpeta para guardar archivos Excel  Directorio del script
+carpetaExcel = fullfile(directorioActual, 'archivos-excel');
+if ~exist(carpetaExcel, 'dir') % Crear carpeta si no existe
+    mkdir(carpetaExcel);
+end
+rutaCompleta = fullfile(carpetaExcel, filename);    % Ruta completa del archivo
+%%writetable(T_final, filename, 'Sheet', sheetName);
+
+fprintf('\n===== Registro actualizado correctamente =====\n');
+fprintf('Archivo: %s\n', filename);
+fprintf('Iteración guardada: %d\n', iteracion);
+fprintf('Constante elástica registrada: %.3e Pa\n', constante_elastica);
+
+
 if isfile(filename)
     try
         T_existente = readtable(filename, 'Sheet', sheetName);
@@ -206,3 +254,4 @@ end
 nombreMaterial = regexprep(material,'\s+','_');
 nombreArchivo = sprintf('Grafica_%s_TR_Iteracion_%d.jpg', nombreMaterial, iteracion);
 saveas(gcf, fullfile(carpeta, nombreArchivo));
+
